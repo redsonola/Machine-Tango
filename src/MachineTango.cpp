@@ -209,6 +209,7 @@ private:
     
     //saving OSC that the program receives
     InteractiveTango::SaveOSC *mSaveOSC;
+    InteractiveTango::PlayOSC *mPlayOSC;
     
     
     void sendOSCMessages( std::vector<ci::osc::Message> msgs, float seconds  );
@@ -279,6 +280,9 @@ void MachineTango::setup()
 #else
     mSaveOSC = NULL;
 #endif
+    
+    //always starts null -- need to press 'p' to open an file to play the saved OSC
+    mPlayOSC = NULL;
     
     
     //just in case
@@ -476,9 +480,11 @@ void MachineTango::keyDown( KeyEvent event )
             fakeBSAccompMode = true;
         }
     }
-    
-
-
+    else if( event.getChar()=='p' )
+    {
+        fs::path openPath = getOpenFilePath();
+        mPlayOSC = new InteractiveTango::PlayOSC(openPath.c_str(), SELF_IPADDR, OSC_LISTENING_PORT);
+    }
 }
 
 void MachineTango::stopStartOSCToAbleton()
@@ -565,9 +571,14 @@ void MachineTango::setRealTimePriorityHigh()
 
 void MachineTango::update()
 {
+    
     setpriority(PRIO_PROCESS, 0, 1);
     
     float seconds = mTimer.getSeconds() ;
+    
+    //play saved OSC messages, if valid.
+    mPlayOSC->update(seconds);
+
     
     if( playing_done){
         std::cout << "Playing current sensor file is done\n";
@@ -625,7 +636,7 @@ void MachineTango::handleOSC(float seconds)
         mListener.getNextMessage( &message );
         
         //save all received messages here
-        mSaveOSC->add(message, getElapsedSeconds()); //add this line to save the OSC
+        mSaveOSC->add(message, seconds); //add this line to save the OSC
         
         std::string addr = message.getAddress();
         
