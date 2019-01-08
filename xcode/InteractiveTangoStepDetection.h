@@ -7,14 +7,7 @@
 #ifndef InteractiveTangoReadFromAndroid_InteractiveTangoStepDetection_h
 #define InteractiveTangoReadFromAndroid_InteractiveTangoStepDetection_h
 
-/*
- 
- Implementing real-time step detection algorithm in EyesWeb environment
- 
- Jonas STANDAERT
- Wouter SPEYBROUCK
 
- */
 
 #include <algorithm>
 
@@ -1051,17 +1044,8 @@ class SnapPeaksFromSnap: public SnapPeaks
         
         if( stepOnlyOnBeat ) combinedPeak = beatTimer->isOnBeat() && combinedPeak;
         
-        //        if ( beatTimer->isOnBeat() )
-        //        {
-        //            std::cout << "is it on: " << std::endl;
-        //        }
-        
         combinedPeak = ( combinedPeak ) && ( peakTimer.readyForNextPeak() );
-        //        if( combinedPeak )
-        //        {
-        //            peakcount++;
-        //            std::cout << "PEAK: " << peakcount << std::endl;
-        //        }
+
         if(combinedPeak)
             peakTimer.peakHappened();
         curPeakHeight = findNormalizedPeakHeight(peakx, peaky, peakz);

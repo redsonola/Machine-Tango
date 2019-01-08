@@ -818,8 +818,6 @@ public:
         OutputSignalAnalysis::update(seconds);
         if( data1.size() < buffersize) return ;
         
-        //TODO: fix NO_DATA
-        
         for( int i=0; i<data1.size(); i++ )
         {
             int start = std::max(0, i-windowSize);

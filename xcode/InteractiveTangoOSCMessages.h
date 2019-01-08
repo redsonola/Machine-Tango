@@ -115,6 +115,7 @@
 #define EXPMUSIC_MELODY_INSTRUMENT "/InteractiveTango/Experimental/Melody/Instrument"
 #define EXPMUSIC_ACCOMP_INSTRUMENT "/InteractiveTango/Experimental/Accompaniment/Instrument"
 #define EXPMUSIC_SECTION "/InteractiveTango/Experimental/Section"
+#define EXPMUSIC_FOOT_ONSETS "/InteractiveTango/Experimental/FootOnset"
 
 
 //Wekinator messages to send

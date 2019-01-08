@@ -1,16 +1,8 @@
 
 //OK, originally I was going to do a magnetic time piece, but now I am going to do an experimental music piece which is more general
 //This is my plan:
-//Create a collection of melodies (ie, melody generators) to respond to busy/sparse
-//create a section 1 and a section 2... maybe but have it all be determined by dancer movement... an analysis of dancer movement.....
-
-//create melody generators which can respond more gesturally to foot movement?
-//eg. mode of 1 to 1 gesture correspondence?
-//vs. more weighted responses? (liike currently?)
-
-//after melody generation really need to experiment on just myself.
-
-//NOTE: TODO RAISE THE SAMPLE RATE ON OUR PHONES WILL MAKE THE STEP DETECTION MUCH BETTER!!!!!
+//OK I AM NOW DOING A MAGNETIC TIME PIECE. WOO.
+//magnetic time is implemented in Max 8 rather than the C++ in this version -- but not w/Carlos Gardel
 
 #include "cinder/app/AppNative.h"
 #include "cinder/gl/gl.h"
@@ -30,7 +22,6 @@
 #include "OscListener.h"
 
 #include "InteractiveTangoOSCMessages.h"
-
 
 #include "MIDIUtility.h"
 
@@ -70,11 +61,15 @@
 
 #include "ExperimentalMusicPlayer.h"
 #include "ExperimentalMusicDancers.h"
+#include "MachineTangoDancers.h"
 #include "sequence_player.h"
+#include "SaveOSC.h"
 
 //#include "MagneticTime.h"
 
 #define MAX_PORT 89898
+
+#define SAVE_ALL_OSC //define if you want to save all the incoming OSC
 
 
 using namespace ci;
@@ -84,7 +79,7 @@ using namespace std;
 //InteractiveTango::MidiFileUtility midiFile;
 
 
-//void ExperimentalMusicInteractiveTango::setup()
+//void MachineTango::setup()
 //{
 //    InteractiveTango::MelodyGenerator generator;
 //    InteractiveTango::FactorOracle fo;
@@ -95,7 +90,7 @@ using namespace std;
 //}
 
 
-class ExperimentalMusicInteractiveTango : public AppNative {
+class MachineTango : public AppNative {
 public:
     void setup();
     void keyDown( KeyEvent event );
@@ -212,6 +207,9 @@ private:
     osc::Sender         backSender;
     osc::Sender         backSenderFollower;
     
+    //saving OSC that the program receives
+    InteractiveTango::SaveOSC *mSaveOSC;
+    
     
     void sendOSCMessages( std::vector<ci::osc::Message> msgs, float seconds  );
     
@@ -224,7 +222,7 @@ private:
     
     std::vector<InteractiveTango::Dancer *> mDancers;
     std::vector<InteractiveTango::Pareja *> mParejas;
-    InteractiveTango::ExperimentalDanceFloor *danceFloor;
+    InteractiveTango::MachineDanceFloor *danceFloor;
     
     InteractiveTango::BeatTiming mBeatTimer;
     bool    receivedBeat;
@@ -246,7 +244,7 @@ private:
 };
 
 ////TEST THE MELODY GENERATORS
-//void ExperimentalMusicInteractiveTango::setup()
+//void MachineTango::setup()
 //{
 //    InteractiveTango::FactorOracle leaderfo;
 //    leaderfo.train("/Users/courtney/Documents/Interactive Tango Milonga/EMTango_Melody/emtango.v3.mid", 1);
@@ -266,15 +264,22 @@ private:
 
 
 
-void ExperimentalMusicInteractiveTango::prepareSettings(Settings *settings)
+void MachineTango::prepareSettings(Settings *settings)
 {
     // settings->setWindowSize(1000,800);
     settings->setTitle("Experimental Interactive Tango");
     settings->setFrameRate(FRAMERATE); //set fastest framerate
 }
 
-void ExperimentalMusicInteractiveTango::setup()
+void MachineTango::setup()
 {
+#ifdef SAVE_ALL_OSC
+    fs::path savePath  = getSaveFilePath();
+    mSaveOSC = new InteractiveTango::SaveOSC(savePath.c_str());
+#else
+    mSaveOSC = NULL;
+#endif
+    
     
     //just in case
     clearListeningUDPSocket();
@@ -315,7 +320,7 @@ void ExperimentalMusicInteractiveTango::setup()
     mBeatTimer.setError(2.1);
     receivedBeat = false;
     
-    danceFloor =  new InteractiveTango::ExperimentalDanceFloor(&mBeatTimer);
+    danceFloor =  new InteractiveTango::MachineDanceFloor(&mBeatTimer);
     
     //setupSensorsForTest();
     //setupSensorsForTestTwoDancers();
@@ -348,7 +353,7 @@ void ExperimentalMusicInteractiveTango::setup()
     //setRealTimePriorityHigh();
 }
 
-void ExperimentalMusicInteractiveTango::keyDown( KeyEvent event )
+void MachineTango::keyDown( KeyEvent event )
 {
     if(fakeBSLeaderMode || fakeBSFollowerMode || fakeBSAccompMode)
     {
@@ -476,7 +481,7 @@ void ExperimentalMusicInteractiveTango::keyDown( KeyEvent event )
 
 }
 
-void ExperimentalMusicInteractiveTango::stopStartOSCToAbleton()
+void MachineTango::stopStartOSCToAbleton()
 {
     shouldSendOSC = !shouldSendOSC;
     if (shouldSendOSC) std::cout << "Sending OSC\n";
@@ -488,7 +493,7 @@ void ExperimentalMusicInteractiveTango::stopStartOSCToAbleton()
     std::flush(std::cout);
 }
 
-void ExperimentalMusicInteractiveTango::startOSCToAbleton()
+void MachineTango::startOSCToAbleton()
 {
     shouldSendOSC = true;
     std::cout << "Sending OSC & Midi\n";
@@ -496,7 +501,7 @@ void ExperimentalMusicInteractiveTango::startOSCToAbleton()
     std::flush(std::cout);
 }
 
-void ExperimentalMusicInteractiveTango::stopOSCToAbleton()
+void MachineTango::stopOSCToAbleton()
 {
     shouldSendOSC = false;
     std::cout << "Stopped sending OSC & MIDI\n";
@@ -505,7 +510,7 @@ void ExperimentalMusicInteractiveTango::stopOSCToAbleton()
     std::flush(std::cout);
 }
 
-void ExperimentalMusicInteractiveTango::restartSong()
+void MachineTango::restartSong()
 {
     //restart the song!
     danceFloor->restartPlayer();
@@ -513,7 +518,7 @@ void ExperimentalMusicInteractiveTango::restartSong()
     std::flush(std::cout);
 }
 
-void ExperimentalMusicInteractiveTango::setRealTimePriorityHigh()
+void MachineTango::setRealTimePriorityHigh()
 {
     //http://www.yonch.com/tech/82-linux-thread-priority
     int ret;
@@ -558,7 +563,7 @@ void ExperimentalMusicInteractiveTango::setRealTimePriorityHigh()
 }
 
 
-void ExperimentalMusicInteractiveTango::update()
+void MachineTango::update()
 {
     setpriority(PRIO_PROCESS, 0, 1);
     
@@ -605,7 +610,7 @@ void ExperimentalMusicInteractiveTango::update()
     pastseconds = seconds;
 }
 
-void ExperimentalMusicInteractiveTango::handleOSC(float seconds)
+void MachineTango::handleOSC(float seconds)
 {
     //handles all the incoming OSC messages
     //this includes: sensor data from Shimmer and Android, beat/tempo messages from Ableton,
@@ -618,6 +623,10 @@ void ExperimentalMusicInteractiveTango::handleOSC(float seconds)
     while( mListener.hasWaitingMessages() ) {
         osc::Message message;
         mListener.getNextMessage( &message );
+        
+        //save all received messages here
+        mSaveOSC->add(message, getElapsedSeconds()); //add this line to save the OSC
+        
         std::string addr = message.getAddress();
         
         if( !addr.compare( ABLETON_SYNC ) )
@@ -755,7 +764,7 @@ void ExperimentalMusicInteractiveTango::handleOSC(float seconds)
     }
 }
 
-void ExperimentalMusicInteractiveTango::updateSignalTree(float seconds, float pastseconds)
+void MachineTango::updateSignalTree(float seconds, float pastseconds)
 {
     //update this first
     if( shouldSendOSC )
@@ -804,7 +813,7 @@ void ExperimentalMusicInteractiveTango::updateSignalTree(float seconds, float pa
 
 }
 
-void ExperimentalMusicInteractiveTango::sendOSCMessages( std::vector<ci::osc::Message> msgs, float seconds  )
+void MachineTango::sendOSCMessages( std::vector<ci::osc::Message> msgs, float seconds  )
 {
     //TODO: this should be refactored into something that makes sense
     //But now it sends signals to different ports and sends continuous data at a set rate, now 15Hz
@@ -903,7 +912,7 @@ void ExperimentalMusicInteractiveTango::sendOSCMessages( std::vector<ci::osc::Me
 
 }
 
-void ExperimentalMusicInteractiveTango::sendOSCInputsToWekinator(std::vector<ci::osc::Message> msgs, float seconds, int index )
+void MachineTango::sendOSCInputsToWekinator(std::vector<ci::osc::Message> msgs, float seconds, int index )
 {
     if( msgs.empty() ) return;
     
@@ -923,7 +932,7 @@ void ExperimentalMusicInteractiveTango::sendOSCInputsToWekinator(std::vector<ci:
     }
 }
 
-void ExperimentalMusicInteractiveTango::wiiToWekinator(osc::Message message)
+void MachineTango::wiiToWekinator(osc::Message message)
 {
     osc::Message wek_msg;
     bool send = false;
@@ -1009,7 +1018,7 @@ void ExperimentalMusicInteractiveTango::wiiToWekinator(osc::Message message)
 
 }
 
-bool ExperimentalMusicInteractiveTango::isWiiButtonDown(std::string addr, osc::Message message)
+bool MachineTango::isWiiButtonDown(std::string addr, osc::Message message)
 {
     //    std::cout << addr << "-" << message.getAddress() << std::endl;
     
@@ -1020,7 +1029,7 @@ bool ExperimentalMusicInteractiveTango::isWiiButtonDown(std::string addr, osc::M
     else return false;
 }
 
-void ExperimentalMusicInteractiveTango::changeMovementParamsWithWii(osc::Message message)
+void MachineTango::changeMovementParamsWithWii(osc::Message message)
 {
     
     if(isWiiButtonDown(WII_B, message) )
@@ -1081,7 +1090,7 @@ void ExperimentalMusicInteractiveTango::changeMovementParamsWithWii(osc::Message
 }
     
     //control this ITM application via wiimote
-    void ExperimentalMusicInteractiveTango::handleWiiOSC(osc::Message message)
+    void MachineTango::handleWiiOSC(osc::Message message)
     {
         
         if(isWiiButtonDown(WII_1, message)) //stop or start sending OSC
@@ -1140,7 +1149,7 @@ void ExperimentalMusicInteractiveTango::changeMovementParamsWithWii(osc::Message
     }
 
 
-    void ExperimentalMusicInteractiveTango::handleOutputWekOSC(osc::Message message, float seconds)
+    void MachineTango::handleOutputWekOSC(osc::Message message, float seconds)
     {
         
         //remove '/wek' prefix + next '/'
@@ -1228,7 +1237,7 @@ void ExperimentalMusicInteractiveTango::changeMovementParamsWithWii(osc::Message
         }
     };
 
-std::vector<ci::osc::Message> ExperimentalMusicInteractiveTango::collectMessagesforDifferentPorts(std::string addr, std::vector<ci::osc::Message> *msgs, std::vector<ci::osc::Message> nmsgs)
+std::vector<ci::osc::Message> MachineTango::collectMessagesforDifferentPorts(std::string addr, std::vector<ci::osc::Message> *msgs, std::vector<ci::osc::Message> nmsgs)
 {
     
     int i = 0;
@@ -1249,7 +1258,7 @@ std::vector<ci::osc::Message> ExperimentalMusicInteractiveTango::collectMessages
     return nmsgs;
 };
 
-std::vector<ci::osc::Message> ExperimentalMusicInteractiveTango::collectMessagesforDifferentPortsBack(std::vector<ci::osc::Message> *msgs)
+std::vector<ci::osc::Message> MachineTango::collectMessagesforDifferentPortsBack(std::vector<ci::osc::Message> *msgs)
 {
     std::vector<ci::osc::Message> nmsgs;
     int i = 0;
@@ -1280,7 +1289,7 @@ std::vector<ci::osc::Message> ExperimentalMusicInteractiveTango::collectMessages
     return nmsgs;
 };
 
-void ExperimentalMusicInteractiveTango::clearListeningUDPSocket()
+void MachineTango::clearListeningUDPSocket()
 {
  //TODO -- later add the libraries to make this work - don't know if this even changed anything.
     
@@ -1304,7 +1313,7 @@ void ExperimentalMusicInteractiveTango::clearListeningUDPSocket()
 //    ::close(fd);
 };
 
-void ExperimentalMusicInteractiveTango::addMarkerToSensorFile(std::string marker)
+void MachineTango::addMarkerToSensorFile(std::string marker)
 {
     if( mSensorData.size() <= 0 ) return;
     
@@ -1317,7 +1326,7 @@ void ExperimentalMusicInteractiveTango::addMarkerToSensorFile(std::string marker
     std::cout << "Added marker " << marker << "in file at " << seconds << "seconds.\n";
 }
 
-void ExperimentalMusicInteractiveTango::printWekModeMenu()
+void MachineTango::printWekModeMenu()
 {
     std::cout <<" CURRENT WII MENU \n";
     std::cout << "Wii Button 1 -- Wekinator start recording DTW\n";
@@ -1328,7 +1337,7 @@ void ExperimentalMusicInteractiveTango::printWekModeMenu()
     std::cout << "Wii Button Down -- Wekinator stop running\n";
     std::cout << "Wii Button Home -- Stop sending to Wekinator, wii back in Application mode\n";
 }
-void ExperimentalMusicInteractiveTango::printNormalWiiMenu()
+void MachineTango::printNormalWiiMenu()
 {
     std::cout <<" CURRENT WII MENU \n";
     std::cout <<" Wii Button 1 -- Start/Stop sending OSC to Ableton\n";
@@ -1345,7 +1354,7 @@ void ExperimentalMusicInteractiveTango::printNormalWiiMenu()
 }
 
 
-void ExperimentalMusicInteractiveTango::printChangingParamsMenu()
+void MachineTango::printChangingParamsMenu()
 {
     std::cout <<" CURRENT WII MENU \n";
     std::cout << "Wii Button B -- return to Normal Application mode\n";
@@ -1363,7 +1372,7 @@ void ExperimentalMusicInteractiveTango::printChangingParamsMenu()
 
 //TODO -- should kill this since will not use these songs
 //InteractiveTango::Pareja::SongIDs whichSongIsPlaying;
-void ExperimentalMusicInteractiveTango::cycleThroughPlaylist()
+void MachineTango::cycleThroughPlaylist()
 {
     //just 2 songs... TODO: fix for MORE songs
 //    
@@ -1379,7 +1388,7 @@ void ExperimentalMusicInteractiveTango::cycleThroughPlaylist()
     
 };
 
-SensorData * ExperimentalMusicInteractiveTango::getSensor(string deviceID, int which)
+SensorData * MachineTango::getSensor(string deviceID, int which)
 {
     bool found = false;
     int index = 0;
@@ -1416,7 +1425,7 @@ SensorData * ExperimentalMusicInteractiveTango::getSensor(string deviceID, int w
     else return mSensorData[index-1];
 };
 
-ci::ColorA ExperimentalMusicInteractiveTango::generateRandomColor()
+ci::ColorA MachineTango::generateRandomColor()
 {
     //gen random color, to ID sensors on screen
     
@@ -1430,7 +1439,7 @@ ci::ColorA ExperimentalMusicInteractiveTango::generateRandomColor()
 }
 
 //adds just one couple
-void ExperimentalMusicInteractiveTango::addLiveDancer(SensorData *sensor, int sid)
+void MachineTango::addLiveDancer(SensorData *sensor, int sid)
 {
     std::string leaderName = "Brent";
     std::string followerName = "Courtney";
@@ -1522,7 +1531,7 @@ void ExperimentalMusicInteractiveTango::addLiveDancer(SensorData *sensor, int si
     }
 }
 
-void ExperimentalMusicInteractiveTango::addTestDancersNoSensors()
+void MachineTango::addTestDancersNoSensors()
 {
     std::cout << "Adding a test couple to floor to be controlled via keyboard...\n";
     
@@ -1581,7 +1590,7 @@ void ExperimentalMusicInteractiveTango::addTestDancersNoSensors()
 
 }
 
-void ExperimentalMusicInteractiveTango::addLivePareja(std::map<int, int> &l, std::map<int, int> &f, int lID, int fID)
+void MachineTango::addLivePareja(std::map<int, int> &l, std::map<int, int> &f, int lID, int fID)
 {
     if(f.size()==3 && l.size() ==3)
     {
@@ -1646,7 +1655,7 @@ void ExperimentalMusicInteractiveTango::addLivePareja(std::map<int, int> &l, std
 }
 
 //an attempt to clear the udpsocket of past OSC data --> since this APPEARS to be happening & f'in shiz up?
-void ExperimentalMusicInteractiveTango::clearResidualData()
+void MachineTango::clearResidualData()
 {
     while( mListener.hasWaitingMessages() ) {
         osc::Message message;
@@ -1654,7 +1663,7 @@ void ExperimentalMusicInteractiveTango::clearResidualData()
     }
 };
 
-int ExperimentalMusicInteractiveTango::addSendtoWekinator()
+int MachineTango::addSendtoWekinator()
 {
     
     //SWITCH!!!!!!!!!!!!!!!!
@@ -1683,7 +1692,7 @@ int ExperimentalMusicInteractiveTango::addSendtoWekinator()
     return index;
 }
 
-void ExperimentalMusicInteractiveTango::draw()
+void MachineTango::draw()
 {
     //clear out the window with black
     if(!receivedBeat)
@@ -1717,7 +1726,7 @@ void ExperimentalMusicInteractiveTango::draw()
     
 }
 
-void ExperimentalMusicInteractiveTango::drawGrid(float size, float step)
+void MachineTango::drawGrid(float size, float step)
 {
     //draw 3d grid on the screen
     
@@ -1731,4 +1740,4 @@ void ExperimentalMusicInteractiveTango::drawGrid(float size, float step)
 
 
 
-CINDER_APP_NATIVE( ExperimentalMusicInteractiveTango, RendererGl )
+CINDER_APP_NATIVE( MachineTango, RendererGl )

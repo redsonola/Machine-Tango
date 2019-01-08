@@ -107,6 +107,7 @@ public:
         fixTicks(reader);
         setLastMidiNotes();
         
+        std::cout  << "Track size of melody: " << melody.size() << "\n";
         
         ticksPerBeat = reader.getTicksPerQuarterNote();
 //        std::cout << "beatsPerMinute:" << beatsPerMinute << std::endl;
