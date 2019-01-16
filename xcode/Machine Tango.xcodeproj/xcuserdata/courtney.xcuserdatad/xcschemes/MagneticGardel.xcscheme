@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "8D1107260486CEB800E47090"
-               BuildableName = "MagneticGardel.app"
-               BlueprintName = "MagneticGardel"
-               ReferencedContainer = "container:MagneticGardel.xcodeproj">
+               BuildableName = "Machine Tango.app"
+               BlueprintName = "Machine Tango"
+               ReferencedContainer = "container:Machine Tango.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -35,9 +35,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8D1107260486CEB800E47090"
-            BuildableName = "MagneticGardel.app"
-            BlueprintName = "MagneticGardel"
-            ReferencedContainer = "container:MagneticGardel.xcodeproj">
+            BuildableName = "Machine Tango.app"
+            BlueprintName = "Machine Tango"
+            ReferencedContainer = "container:Machine Tango.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -79,9 +79,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8D1107260486CEB800E47090"
-            BuildableName = "MagneticGardel.app"
-            BlueprintName = "MagneticGardel"
-            ReferencedContainer = "container:MagneticGardel.xcodeproj">
+            BuildableName = "Machine Tango.app"
+            BlueprintName = "Machine Tango"
+            ReferencedContainer = "container:Machine Tango.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -98,9 +98,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8D1107260486CEB800E47090"
-            BuildableName = "MagneticGardel.app"
-            BlueprintName = "MagneticGardel"
-            ReferencedContainer = "container:MagneticGardel.xcodeproj">
+            BuildableName = "Machine Tango.app"
+            BlueprintName = "Machine Tango"
+            ReferencedContainer = "container:Machine Tango.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

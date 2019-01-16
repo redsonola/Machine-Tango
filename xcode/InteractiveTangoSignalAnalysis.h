@@ -1188,12 +1188,12 @@ public:
     {
     protected:
         int ID1;
-        ci::Vec3d prevXYZ;
-        ci::Vec3d prevGyroXYZ;
-        ci::Vec4d prevQuat;
+        ci::vec3 prevXYZ;
+        ci::vec3 prevGyroXYZ;
+        ci::vec4 prevQuat;
         
         //TODO: fix.....
-        ci::Vec3d min_g, max_g;
+        ci::vec3 min_g, max_g;
         
         //this gives one answer per buffer
         std::vector<ShimmerData *> window;
@@ -1229,17 +1229,17 @@ public:
             
         };
         
-        ci::Vec3d getOutputGyroAvg()
+        ci::vec3 getOutputGyroAvg()
         {
-            ci::Vec3d sum;
+            ci::vec3 sum;
             for( int i=0; i<outdata1.size(); i++ )
             {
                 sum += outdata1[i]->getGyro();
             }
-            return sum / double( outdata1.size() );
+            sum = ci::vec3( sum.x / double( outdata1.size() ), sum.y / double( outdata1.size() ), sum.z / double( outdata1.size() ));
+            return sum;
             
-            motionData[0]->setValue( sum.length() );
-            
+            motionData[0]->setValue(  glm::length( sum ) );
         }
         
         virtual double scale(double val, int i)
@@ -1251,8 +1251,8 @@ public:
         
         virtual void updateMotionData()
         {
-            ci::Vec3d avg = getOutputGyroAvg();
-            ci::Vec3d data;
+            ci::vec3 avg = getOutputGyroAvg();
+            ci::vec3 data;
             for( int i=0; i<3; i++ )
             {
                 data[i] = scale(avg[i], i);
@@ -1263,19 +1263,19 @@ public:
         }
 
         
-        ci::Vec3d getUnitVector(ci::Vec3d curvec, ci::Vec3d prevVec)
+        ci::vec3 getUnitVector(ci::vec3 curvec, ci::vec3 prevVec)
         {
         //see if should normalize vector when using windowing
-            ci::Vec3d unitVec = curvec - prevVec ;
+            ci::vec3 unitVec = curvec - prevVec ;
 //            unitVec.normalize() ;
             return unitVec ;
         };
         
         
-        ci::Vec4d getUnitVector4d(ci::Vec4d curvec, ci::Vec4d prevVec)
+        ci::vec4 getUnitVector4d(ci::vec4 curvec, ci::vec4 prevVec)
         {
             //see if should normalize vector when using windowing
-            ci::Vec4d unitVec = curvec - prevVec ;
+            ci::vec4 unitVec = curvec - prevVec ;
 //            unitVec.normalize() ;
             return unitVec ;
         };
@@ -1316,23 +1316,39 @@ public:
                     if( window[i]->getQuarternion(0) != NO_DATA)
                     {
                         quartCount++;
-                        sum.setQuarternion( window[i]->getQuarternionVec4d() + sum.getQuarternionVec4d() );
+                        sum.setQuarternion( window[i]->getQuarternionvec4() + sum.getQuarternionvec4() );
                     }
             }
-            if(useAccel) sum.setAccelData( sum.getAccelData() / double(accelCount) );
-            if (useGry)  sum.setGyro( sum.getGyro() / double(gyroCount) );
-            if (useQuart) sum.setQuarternion( sum.getQuarternionVec4d() / double(quartCount) );
+            
+            
+            if(useAccel) sum.setAccelData( ci::vec3(sum.getAccelData().x / double(accelCount),
+                                          sum.getAccelData().y / double(accelCount),
+                                          sum.getAccelData().z / double(accelCount)));
+            
+            if(useGry) sum.setGyro( ci::vec3(sum.getGyro().x / double(gyroCount),
+                                                    sum.getGyro().y / double(gyroCount),
+                                                    sum.getGyro().z / double(gyroCount)));
+            
+            ci::vec4 quart;
+            quart.x = sum.getQuarternionvec4().x / double(quartCount);
+            quart.y = sum.getQuarternionvec4().y / double(quartCount);
+            quart.z = sum.getQuarternionvec4().z / double(quartCount);
+            quart.w = sum.getQuarternionvec4().w / double(quartCount);
+
+            if (useQuart) sum.setQuarternion( quart );
             
             return sum;
         };
         
         
         
+        
+        
         virtual void update(float seconds=0)
         {
             OutputSignalAnalysis::update(seconds);
-            ci::Vec3d curXYZ, curGyro;
-            ci::Vec4d curQuat;
+            ci::vec3 curXYZ, curGyro;
+            ci::vec4 curQuat;
             if( data1.size() < 1 ) return ;
             
             for(int i=0; i<data1.size(); i++)
@@ -1342,7 +1358,7 @@ public:
                 ShimmerData *sd = new ShimmerData();
                 sd->setAccelData( data1[i]->getAccelData() );
                 sd->setGyro( data1[i]->getGyro() );
-                sd->setQuarternion(data1[i]->getQuarternionVec4d());
+                sd->setQuarternion(data1[i]->getQuarternionvec4());
                 window.push_back(sd);
                 
                 
@@ -1352,7 +1368,7 @@ public:
                     ShimmerData d = getWindowAvg();
                     curXYZ  = d.getAccelData();
                     curGyro = d.getGyro();
-                    curQuat = d.getQuarternionVec4d();
+                    curQuat = d.getQuarternionvec4();
                     
                     if( curSignalVector != NULL )
                     {
@@ -1378,7 +1394,7 @@ public:
                     ShimmerData *s = new ShimmerData();
                     s->setAccelData( curSignalVector->getAccelData() );
                     s->setGyro( curSignalVector->getGyro() );
-                    s->setQuarternion(curSignalVector->getQuarternionVec4d());
+                    s->setQuarternion(curSignalVector->getQuarternionvec4());
                     outdata1.push_back(s);
                 }
             }
@@ -1402,18 +1418,18 @@ public:
     protected:
         int ID1;
 
-        ci::Vec3d prevXYZ, prevGyroXYZ;
-        ci::Vec3d minAccXYZ, minGyroXYZ;
-        ci::Vec3d maxAccXYZ, maxGyroXYZ;
+        ci::vec3 prevXYZ, prevGyroXYZ;
+        ci::vec3 minAccXYZ, minGyroXYZ;
+        ci::vec3 maxAccXYZ, maxGyroXYZ;
         
-        ci::Vec3d prevXYZ2, prevGyroXYZ2;
-        ci::Vec3d minAccXYZ2, minGyroXYZ2;
-        ci::Vec3d maxAccXYZ2, maxGyroXYZ2;
+        ci::vec3 prevXYZ2, prevGyroXYZ2;
+        ci::vec3 minAccXYZ2, minGyroXYZ2;
+        ci::vec3 maxAccXYZ2, maxGyroXYZ2;
         
         //try with raw signal...
-        ci::Vec3d avgAccXYZ1, minAccXYZ1, maxAccXYZ1;
+        ci::vec3 avgAccXYZ1, minAccXYZ1, maxAccXYZ1;
                                 //vectors used in motiondata
-        std::vector<ci::Vec3d *> motionDataVecs;
+        std::vector<ci::vec3 *> motionDataVecs;
         
         std::vector<std::string> nameStrings;
         
@@ -1458,12 +1474,14 @@ public:
             //init max and min
             for(int i=0; i<motionDataVecs.size(); i++ )
             {
-                motionDataVecs[i]->set(NO_DATA, NO_DATA, NO_DATA );
+                motionDataVecs[i]->x = NO_DATA;
+                motionDataVecs[i]->y = NO_DATA;
+                motionDataVecs[i]->z = NO_DATA;
             }
-            prevXYZ.set(0,0,0);
-            prevGyroXYZ.set(0,0,0);
-            prevXYZ2.set(0,0,0);
-            prevGyroXYZ2.set(0,0,0);
+            prevXYZ = ci::vec3(0,0,0);
+            prevGyroXYZ = ci::vec3(0,0,0);
+            prevXYZ2 = ci::vec3(0,0,0);
+            prevGyroXYZ2 = ci::vec3(0,0,0);
         };
         
         virtual void clearWindow(std::vector<ShimmerData *> &w )
@@ -1482,9 +1500,9 @@ public:
             clearWindow(windowPrimary);
         };
         
-        ci::Vec3d findMin(ci::Vec3d m1, ci::Vec3d m2)
+        ci::vec3 findMin(ci::vec3 m1, ci::vec3 m2)
         {
-            ci::Vec3d m;
+            ci::vec3 m;
             for( int i=0; i<3; i++ )
             {
                 if(m1[i] == NO_DATA && m2[i] != NO_DATA )
@@ -1497,9 +1515,9 @@ public:
             return m;
         };
         
-        ci::Vec3d findMax(ci::Vec3d m1, ci::Vec3d m2)
+        ci::vec3 findMax(ci::vec3 m1, ci::vec3 m2)
         {
-            ci::Vec3d m;
+            ci::vec3 m;
             for( int i=0; i<3; i++ )
             {
                 m[i] = std::max(m1[i], m2[i]);
@@ -1508,14 +1526,16 @@ public:
         };
         
         //only for for acc
-        virtual ci::Vec3d getAccelWindowAvg( std::vector<ShimmerData *> w )
+        virtual ci::vec3 getAccelWindowAvg( std::vector<ShimmerData *> w )
         {
-            ci::Vec3d sum(0,0,0);
+            ci::vec3 sum(0,0,0);
             for( int i=0; i<w.size(); i++ )
             {
                 sum = w[i]->getAccelData() + sum ;
             }
-            sum = sum / double(w.size() );
+            sum = ci::vec3( sum.x / double(w.size() ),
+                   sum.y / double(w.size() ),
+                   sum.z / double(w.size() ));
             return sum;
         };
         
@@ -1546,7 +1566,7 @@ public:
             {
                 for( int j=0; j<3; j++ )
                 {
-                    ci::Vec3d vd = *motionDataVecs[i];
+                    ci::vec3 vd = *motionDataVecs[i];
                     motionData[j+(i*3)]->setValue( vd[j] );
 //                    std::cout << vd[j] << ",";
                 }
@@ -1554,7 +1574,7 @@ public:
 //            std::cout << std::endl;
         };
         
-        virtual void addToWindow(std::vector<ShimmerData *> &w, ci::Vec3d curA, ci::Vec3d curG )
+        virtual void addToWindow(std::vector<ShimmerData *> &w, ci::vec3 curA, ci::vec3 curG )
         {
             //add to data window
             ShimmerData *sd = new ShimmerData();
@@ -1564,7 +1584,7 @@ public:
 
         };
         
-        virtual void addToWindow(std::vector<ShimmerData *> &w, ci::Vec3d prevA, ci::Vec3d prevG, ci::Vec3d curA, ci::Vec3d curG )
+        virtual void addToWindow(std::vector<ShimmerData *> &w, ci::vec3 prevA, ci::vec3 prevG, ci::vec3 curA, ci::vec3 curG )
         {
             //add to data window
             addToWindow(w, curA - prevA, curG - prevG);
@@ -1576,7 +1596,7 @@ public:
         virtual void update(float seconds=0)
         {
             SignalAnalysisEventOutput::update(seconds);
-            ci::Vec3d curXYZ, curGyro, curXYZ2, curGyro2;
+            ci::vec3 curXYZ, curGyro, curXYZ2, curGyro2;
             if( data1.size() < 1 ) return ;
             
             for(int i=0; i<data1.size(); i++)
@@ -1597,7 +1617,9 @@ public:
                     //init max and min
                     for(int i=0; i<motionDataVecs.size(); i++ )
                     {
-                        motionDataVecs[i]->set( NO_DATA, NO_DATA, NO_DATA );
+                        motionDataVecs[i]->x = NO_DATA;
+                        motionDataVecs[i]->y = NO_DATA;
+                        motionDataVecs[i]->z = NO_DATA;
                     }
                     
                     getWindowMinMax();
@@ -1635,8 +1657,8 @@ public:
     class SignalVector2ndOrder : public SignalVector
     {
     protected:
-        ci::Vec3d prevXYZ2;
-        ci::Vec3d prevGyroXYZ2;
+        ci::vec3 prevXYZ2;
+        ci::vec3 prevGyroXYZ2;
     public:
         SignalVector2ndOrder(SignalAnalysis *s, int idz, int sz=15 ) : SignalVector(s, sz)
         {
@@ -1659,8 +1681,8 @@ public:
         virtual void update(float seconds=0)
         {
             OutputSignalAnalysis::update(seconds);
-            ci::Vec3d curXYZ, curGyro;
-            ci::Vec3d curXYZ2, curGyro2;
+            ci::vec3 curXYZ, curGyro;
+            ci::vec3 curXYZ2, curGyro2;
 
             if( data1.size() < 1 ) return ;
             
@@ -1729,8 +1751,8 @@ public:
     {
     protected:
         int ID1;
-        ci::Vec3d prevXYZ;
-        ci::Vec3d prevGyroXYZ;
+        ci::vec3 prevXYZ;
+        ci::vec3 prevGyroXYZ;
         
         //this gives one answer per buffer
         std::vector<ShimmerData *> window;
@@ -1770,12 +1792,12 @@ public:
             
         };
         
-        ci::Vec3d getDirectionCosines(ci::Vec3d curvec, ci::Vec3d prevVec)
+        ci::vec3 getDirectionCosines(ci::vec3 curvec, ci::vec3 prevVec)
         {
             //see if should normalize vector when using windowing
-            ci::Vec3d directionCos;
-            ci::Vec3d vec = curvec - prevVec ; //find the vector
-            double len = vec.length();
+            ci::vec3 directionCos;
+            ci::vec3 vec = curvec - prevVec ; //find the vector
+            double len = glm::length(vec);
             
             if(len == 0)
             {
@@ -1820,8 +1842,15 @@ public:
                 sum.setAccelData( window[i]->getAccelData() + sum.getAccelData() );
                 sum.setGyro( window[i]->getGyro() + sum.getGyro() );
             }
-            sum.setAccelData( sum.getAccelData() / double(window.size()) );
-            sum.setGyro( sum.getGyro() / double(window.size()) );
+            
+            sum.setAccelData( ci::vec3(sum.getAccelData().x / double(window.size()),
+                              sum.getAccelData().y / double(window.size()),
+                              sum.getAccelData().z / double(window.size())));
+            
+            sum.setGyro( ci::vec3(sum.getGyro().x / double(window.size()),
+                                       sum.getGyro().y / double(window.size()),
+                                       sum.getGyro().z / double(window.size())));
+            
             return sum;
         };
         
@@ -1841,7 +1870,7 @@ public:
             placeInHod(hod[hodValIndex], val);
         };
         
-        void placeInHod(bool isAcc, ci::Vec3d val)
+        void placeInHod(bool isAcc, ci::vec3 val)
         {
             if(isAcc)
             {
@@ -1872,7 +1901,7 @@ public:
         virtual void update(float seconds=0)
         {
             SignalAnalysis::update(seconds);
-            ci::Vec3d curXYZ, curGyro;
+            ci::vec3 curXYZ, curGyro;
             if( data1.size() < 1 ) return ;
             
             
@@ -1904,8 +1933,8 @@ public:
                         curXYZ  = d->getAccelData();
                         curGyro = d->getGyro();
                         
-                        ci::Vec3d acc = getDirectionCosines(curXYZ,prevXYZ);
-                        ci::Vec3d gry = getDirectionCosines(curGyro,prevGyroXYZ);
+                        ci::vec3 acc = getDirectionCosines(curXYZ,prevXYZ);
+                        ci::vec3 gry = getDirectionCosines(curGyro,prevGyroXYZ);
                         
                         placeInHod(true, acc);
                         placeInHod(false, gry);

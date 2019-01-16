@@ -1605,48 +1605,49 @@ namespace InteractiveTango
             player->addAccompaniment( accompaniment );
         };
         
-        void loadCourtneyTangoSongNumberOneIntoPlayer()
-        {
-            destroyCurSong();
-            if( couples.size() <= 0 )
-            {
-                std::cout << "Warning! No couples on dance floor. Cannot load song! ";
-            }
-            
-            
-            melody = new MelodySectionA( mTimer, melodyOnsetDancer->getOnsets() , &instruments ); //so far only FOLLOWER... change?
-            accompaniment = new AccompanimentSectionA( mTimer, &instruments );
-            
-            //              ornaments
-            for( int i=0; i<couples.size(); i++ )
-                couples[i]->setMotionAnalysisParamsForSong(TangoEntity::SongIDs::FRAGMENTS);
-            
-            loadSong(mTimer);
-            loadCourtneyTangoSongNumberOneOrnaments();
-            
-            selectedSong = TangoEntity::SongIDs::FRAGMENTS;
-            std::cout << "Loaded Fragments\n";
-        };
-        
-        void loadPorUnaCabezaIntoPlayer()
-        {
-            destroyCurSong();
-            if( couples.size() <= 0 )
-            {
-                std::cout << "Warning! No couples on dance floor. Cannot load song! ";
-            }
-            
-            
-            melody = new MelodyPorUnaCabeza( mTimer, melodyOnsetDancer->getOnsets(), &instruments ); //so far only FOLLOWER... change?
-            accompaniment = new AccompanimentPorUnaCabeza( mTimer, &instruments );
-            
-            for( int i=0; i<couples.size(); i++ )
-                couples[i]->setMotionAnalysisParamsForSong(TangoEntity::SongIDs::POR_UNA_CABEZA);
-            
-            loadSong(mTimer);
-            selectedSong = TangoEntity::SongIDs::POR_UNA_CABEZA;
-            std::cout << "Loaded Por Una Cabeza\n";
-        };
+//not used in this version
+//        void loadCourtneyTangoSongNumberOneIntoPlayer()
+//        {
+//            destroyCurSong();
+//            if( couples.size() <= 0 )
+//            {
+//                std::cout << "Warning! No couples on dance floor. Cannot load song! ";
+//            }
+//
+//
+//            melody = new MelodySectionA( mTimer, melodyOnsetDancer->getOnsets() , &instruments ); //so far only FOLLOWER... change?
+//            accompaniment = new AccompanimentSectionA( mTimer, &instruments );
+//
+//            //              ornaments
+//            for( int i=0; i<couples.size(); i++ )
+//                couples[i]->setMotionAnalysisParamsForSong(TangoEntity::SongIDs::FRAGMENTS);
+//
+//            loadSong(mTimer);
+//            loadCourtneyTangoSongNumberOneOrnaments();
+//
+//            selectedSong = TangoEntity::SongIDs::FRAGMENTS;
+//            std::cout << "Loaded Fragments\n";
+//        };
+//
+//        void loadPorUnaCabezaIntoPlayer()
+//        {
+//            destroyCurSong();
+//            if( couples.size() <= 0 )
+//            {
+//                std::cout << "Warning! No couples on dance floor. Cannot load song! ";
+//            }
+//
+//
+//            melody = new MelodyPorUnaCabeza( mTimer, melodyOnsetDancer->getOnsets(), &instruments ); //so far only FOLLOWER... change?
+//            accompaniment = new AccompanimentPorUnaCabeza( mTimer, &instruments );
+//
+//            for( int i=0; i<couples.size(); i++ )
+//                couples[i]->setMotionAnalysisParamsForSong(TangoEntity::SongIDs::POR_UNA_CABEZA);
+//
+//            loadSong(mTimer);
+//            selectedSong = TangoEntity::SongIDs::POR_UNA_CABEZA;
+//            std::cout << "Loaded Por Una Cabeza\n";
+//        };
         
         //temp here, I think....... this restarts the music player to the beginning
         virtual void restartPlayer()

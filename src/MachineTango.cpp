@@ -4,9 +4,9 @@
 //OK I AM NOW DOING A MAGNETIC TIME PIECE. WOO.
 //magnetic time is implemented in Max 8 rather than the C++ in this version -- but not w/Carlos Gardel
 
-#include "cinder/app/AppNative.h"
+#include "cinder/app/App.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
-#include "cinder/gl/Texture.h"
 //#include "cinder/Capture.h"
 #include "cinder/ip/Resize.h"
 #include "cinder/Rand.h"
@@ -55,7 +55,7 @@
 #include "SendOSCUGENs.h"
 #include "MappingSchemaEventInContinuousOut.h"
 
-#include "TangoFragmentsSectionALoader.h"
+//#include "TangoFragmentsSectionALoader.h"
 
 #include "Dancers.h"
 
@@ -90,7 +90,7 @@ using namespace std;
 //}
 
 
-class MachineTango : public AppNative {
+class MachineTango : public App {
 public:
     void setup();
     void keyDown( KeyEvent event );
@@ -270,10 +270,13 @@ void MachineTango::prepareSettings(Settings *settings)
     // settings->setWindowSize(1000,800);
     settings->setTitle("Experimental Interactive Tango");
     settings->setFrameRate(FRAMERATE); //set fastest framerate
+//    settings->setHighDensityDisplayEnabled( true );
+    
 }
 
 void MachineTango::setup()
 {
+//setup to save OSC
 #ifdef SAVE_ALL_OSC
     fs::path savePath  = getSaveFilePath();
     mSaveOSC = new InteractiveTango::SaveOSC(savePath.c_str());
@@ -296,8 +299,8 @@ void MachineTango::setup()
     mSaveFilePath = "";
     
     // set up the camera for screen display
-    mCamera.setEyePoint(Vec3f(5.0f, 10.0f, 10.0f));
-    mCamera.setCenterOfInterestPoint(Vec3f(0.0f, 0.0f, 0.0f));
+    mCamera.setEyePoint(vec3(5.0f, 10.0f, 10.0f));
+    mCamera.lookAt(vec3(0.0f, 0.0f, 0.0f));
     mCamera.setPerspective(60.0f, getWindowAspectRatio(), 1.0f, 1000.0f);
     
     // start timer and init variables for mocap replay
@@ -577,8 +580,8 @@ void MachineTango::update()
     float seconds = mTimer.getSeconds() ;
     
     //play saved OSC messages, if valid.
-    mPlayOSC->update(seconds);
-
+    if( mPlayOSC != NULL )
+        mPlayOSC->update(seconds);
     
     if( playing_done){
         std::cout << "Playing current sensor file is done\n";
@@ -601,9 +604,10 @@ void MachineTango::update()
         //check if done playing loaded sensor
         if( !addLiveDancers )
         {
-            LoadedSensor *s = (LoadedSensor *) mSensorData[i];
-            playing_done = s->done();
-            if(playing_done) std::cout << "Done playing sensor file.\n";
+            std::cout << "LoadedSensor functionality has been disabled\n";
+//            LoadedSensor *s = (LoadedSensor *) mSensorData[i];
+//            playing_done = s->done();
+//            if(playing_done) std::cout << "Done playing sensor file.\n";
         }
         
     }
@@ -636,7 +640,8 @@ void MachineTango::handleOSC(float seconds)
         mListener.getNextMessage( &message );
         
         //save all received messages here
-        mSaveOSC->add(message, seconds); //add this line to save the OSC
+        if(mSaveOSC!=NULL)
+            mSaveOSC->add(message, seconds); //add this line to save the OSC
         
         std::string addr = message.getAddress();
         
@@ -701,7 +706,7 @@ void MachineTango::handleOSC(float seconds)
             
             if( !addr.compare( OSC_SHIMMERDATA ) )
             {
-                ci::Vec4d quat;
+                ci::vec4 quat;
                 
                 for( int i=3; i<6; i++ )
                 {
@@ -1328,13 +1333,15 @@ void MachineTango::addMarkerToSensorFile(std::string marker)
 {
     if( mSensorData.size() <= 0 ) return;
     
-    float seconds = mTimer.getSeconds() ;
+    std::cout << "This function has been depreciated and does not do a thing.\n";
     
-    for(int i=0; i<mSensorData.size(); i++)
-    {
-        mSensorData[i]->markerInFile(marker, seconds);
-    }
-    std::cout << "Added marker " << marker << "in file at " << seconds << "seconds.\n";
+//    float seconds = mTimer.getSeconds() ;
+//
+//    for(int i=0; i<mSensorData.size(); i++)
+//    {
+//        mSensorData[i]->markerInFile(marker, seconds);
+//    }
+//    std::cout << "Added marker " << marker << "in file at " << seconds << "seconds.\n";
 }
 
 void MachineTango::printWekModeMenu()
@@ -1721,7 +1728,7 @@ void MachineTango::draw()
     drawGrid();
     
     gl::color(1,0,1,1);
-    ci::gl::drawSphere(ci::Vec3f(0, 0, 0), 0.05f);
+    ci::gl::drawSphere(ci::vec3(0, 0, 0), 0.05f);
     
     for (int i = 0; i < visualizers.size(); i++)
     {
@@ -1744,11 +1751,15 @@ void MachineTango::drawGrid(float size, float step)
     gl::color(Colorf(0.2f, 0.2f, 0.2f));
     for (float i = -size; i <= size; i += step)
     {
-        gl::drawLine(Vec3f(i, 0.0f, -size), Vec3f(i, 0.0f, size));
-        gl::drawLine(Vec3f(-size, 0.0f, i), Vec3f(size, 0.0f, i));
+        gl::drawLine(vec3(i, 0.0f, -size), vec3(i, 0.0f, size));
+        gl::drawLine(vec3(-size, 0.0f, i), vec3(size, 0.0f, i));
     }
 }
 
-
-
-CINDER_APP_NATIVE( MachineTango, RendererGl )
+CINDER_APP( MachineTango, RendererGl,
+           []( MachineTango::Settings *settings ) //note: this part is to fix the display after updating OS X 1/15/18
+           {
+               settings->setHighDensityDisplayEnabled( true );
+               settings->setTitle("Machine Tango");
+               settings->setFrameRate(FRAMERATE); //set fastest framerate
+           } )

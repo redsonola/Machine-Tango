@@ -1,6 +1,6 @@
 #include "cinder/gl/Vbo.h"
 #include "cinder/Camera.h"
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/App.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Text.h"
 #include "cinder/Vector.h"
@@ -10,12 +10,12 @@
 class VisualizeShimmer
 {
 private: 
-	std::vector<ci::Vec3f>	vData;
-	ci::Vec3f				transVector;
+	std::vector<ci::vec3>	vData;
+	ci::vec3				transVector;
 	ci::ColorA				color;
 	std::string				port;
 	ci::TextLayout			txt; 
-	ci::Vec2f				bounds; 
+	ci::vec2				bounds; 
 
 public: 
 	VisualizeShimmer();
@@ -30,24 +30,24 @@ public:
 		txt.setFont(ci::Font("Arial", 10));
         txt.addLine(ss.str());
 	};
-	inline void setTranslationVector(ci::Vec3f tr){transVector = tr;};
+	inline void setTranslationVector(ci::vec3 tr){transVector = tr;};
 	void translateUp(){ transVector.y += TRANS_INC; };
 	void translateDown(){ transVector.y -= TRANS_INC; };
 	void translateLeft(){ transVector.x -= TRANS_INC; };
 	void translateRight(){ transVector.x += TRANS_INC; };
-	inline void setBounds(ci::Vec2f b){ bounds = b; };
+	inline void setBounds(ci::vec2 b){ bounds = b; };
 };
 VisualizeShimmer::VisualizeShimmer()
 {
 	color = ci::ColorA(0, 1, 0, 1); //random initial color, not really random, green.
-	transVector = ci::Vec3f::zero(); 
+    transVector = ci::vec3(0);
 }
 void VisualizeShimmer::update(std::vector<ShimmerData *> data)
 {
 	vData.clear();
 	for (int i = 0; i < data.size(); i++)
 	{
-		ci::Vec3f pos = data[i]->getAccelData();
+		ci::vec3 pos = data[i]->getAccelData();
         if( pos.x != NO_DATA ) //for handling android data
         {
             pos.x = pos.x / G_FORCE;
@@ -69,7 +69,7 @@ void VisualizeShimmer::draw()
 {
 	ci::gl::color(color);
 	ci::gl::drawSphere(transVector, 0.05f);
-	ci::Vec2f pos = transVector.xy(); pos.y -= 0.1;
+    ci::vec2 pos = ci::vec2(transVector.x,transVector.y) ; pos.y -= 0.1;
 
 	for (int i = 0; i < vData.size(); i++)
 	{
