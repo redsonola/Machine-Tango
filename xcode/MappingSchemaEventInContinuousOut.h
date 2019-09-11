@@ -977,8 +977,6 @@ public:
                 std::vector<float> energyVals = energy->valuesForOSC();
                 std::vector<float> accelVals = accelEnergy->valuesForOSC();
 
-
-                
 //                for(int i=0; i<vals.size(); i++)
 //                    msg.addFloatArg( vals[i] );
 //                

@@ -196,6 +196,7 @@
 		F1E35A431FBE2FC00041E5A0 /* Dancers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dancers.h; sourceTree = "<group>"; };
 		F1E35A441FBE30A80041E5A0 /* SendOSCUGENs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SendOSCUGENs.h; sourceTree = "<group>"; };
 		F1E35A451FBE31460041E5A0 /* MappingSchemaEventInContinuousOut.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MappingSchemaEventInContinuousOut.h; sourceTree = "<group>"; };
+		F1F132DB222F05D100FE83A6 /* NotchData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NotchData.h; path = ../include/NotchData.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -322,6 +323,7 @@
 				F1D07BF21FBCE8B000AC4558 /* GestureRecognizerUGENs.h */,
 				F16868491FBB8D5D00B71CE2 /* PerceptualMappingScheme.h */,
 				F16868481FBB8A8C00B71CE2 /* ShimmerData.h */,
+				F1F132DB222F05D100FE83A6 /* NotchData.h */,
 				F16868471FBB89C000B71CE2 /* MotionAnalysisOuput.h */,
 				F16868461FBB852900B71CE2 /* InteractiveTangoSignalAnalysis.h */,
 				F1644ADF1FB4F7A900F7A2CF /* InteractiveTangoOSCMessages.h */,

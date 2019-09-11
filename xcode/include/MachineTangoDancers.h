@@ -80,6 +80,9 @@ public:
                 curMsgs.push_back(ms[j]);
             }
         }
+//        
+//        for(int i=0; i<curMsgs.size(); i++)
+//            std::cout << curMsgs[i].getAddress() << std::endl;
         
         return curMsgs;
     };

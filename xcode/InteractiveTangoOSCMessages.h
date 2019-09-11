@@ -12,10 +12,11 @@
 #define InteractiveTangoOSCMessages_h
 
 #define SHIMMER_DATA_OSC_ADDR "/shimmerdata"
+#define NOTCH_DATA_OSC_ADDR "/Notch/BonePosAndAccel"
 #define BUS_OSC_ADDR "/c_set"
 #define SHIMMER_NUM_ARGS 19
 #define SHIMMER_PORT 57121
-#define SC_LANG_PORT 57120
+#define SC_LANG_PORT 57125
 #define G_FORCE 9.80665
 #define FRAMERATE 8000
 

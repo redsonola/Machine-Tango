@@ -27,6 +27,7 @@
 
 #include "ReadCSV.h"
 #include "ShimmerData.h"
+#include "NotchData.h"
 #include "VisualizeShimmer.h"
 #include "ShimmerWrapper.h"
 
@@ -836,95 +837,103 @@ void MachineTango::sendOSCMessages( std::vector<ci::osc::Message> msgs, float se
     
     if( msgs.empty() ) return;
     
-    lastSentOSC += ( seconds - pastseconds );
+//    lastSentOSC += ( seconds - pastseconds );
     
-    ci::osc::Sender *send;
-    bool shouldSend = false;
-    std::string firstAddress = msgs[0].getAddress();
-    
-    std::vector<ci::osc::Message> ornament_msgs;
-    ornament_msgs = collectMessagesforDifferentPorts(CREATE_BOLEO_ORNAMENT, &msgs, ornament_msgs);
-    
-    std::vector<ci::osc::Message> circling_msgs;
-    circling_msgs = collectMessagesforDifferentPorts(CIRCLING_VOLUME, &msgs, circling_msgs);
-    circling_msgs = collectMessagesforDifferentPorts(CIRCLING_GYRO_VECTOR_LENGTH, &msgs, circling_msgs);
-    circling_msgs = collectMessagesforDifferentPorts(CIRCLING_ACCEL, &msgs, circling_msgs);
-    circling_msgs = collectMessagesforDifferentPorts(CIRCLING_GYR, &msgs, circling_msgs);
-    circling_msgs = collectMessagesforDifferentPorts(PLAY_CIRCLING_CLIP, &msgs, circling_msgs);
-    
-    std::vector<ci::osc::Message> longstep_msgs;
-    longstep_msgs = collectMessagesforDifferentPorts(LONGSTEP_ACCEL, &msgs, longstep_msgs);
-    longstep_msgs = collectMessagesforDifferentPorts(LONGSTEP_START, &msgs, longstep_msgs);
-    longstep_msgs = collectMessagesforDifferentPorts(LONGSTEP_END, &msgs, longstep_msgs);
-    
-    std::vector<ci::osc::Message>  back_msgs = collectMessagesforDifferentPortsBack(&msgs);
-    
-    std::vector<ci::osc::Message> reverb_msgs;
-    reverb_msgs = collectMessagesforDifferentPorts(ROOM_SIZE_GROUP_SIMILARITY, &msgs, reverb_msgs);
-    
-    //solution FOR NOW -- refactor later
-    
-    //init
-    send = NULL;
-    
-    if( !firstAddress.compare( PLAY_CLIP ) || !firstAddress.compare( PLAY_MELODY_CLIP ) )
-    {
-        send = &sender;
-        shouldSend = true;
+    for(int i=0; i<msgs.size(); i++){
+        sender.sendMessage(msgs[i]);
+//        std::cout << msgs[i].getAddress() << std::endl;
     }
-    else
-    {
-        if(lastSentOSC > OSC_SEND_AVG_SPEED )
-        {
-            if( !firstAddress.compare( STEPTIME_REVERBTAIL ) )
-            {
-                send = &reverbSender;
-            }
-            else if( !firstAddress.compare( POINTY_VS_SMOOTH ) )
-            {
-                send = &pVSsSender;
-            }
-            shouldSend = true;
-            lastSentOSC = 0;
-        }
-        else
-        {
-            shouldSend = true;
-            send = &sender;
-            
-        }
-    }
+
     
-    if( shouldSend )
-    {
-        for(int i=0; i<msgs.size(); i++)
-        {
-            if(send != NULL) send->sendMessage(msgs[i]);
-            //            OSCMessageITM m(msgs[i]);
-            //            std::cout << m.str() << std::endl;
-        }
-        for(int i=0; i<ornament_msgs.size(); i++)
-        {
-            ornamentSender.sendMessage(ornament_msgs[i]);
-        }
-        for(int i=0; i<circling_msgs.size(); i++)
-        {
-            circlingSender.sendMessage(circling_msgs[i]);
-        }
-        //        for(int i=0; i<longstep_msgs.size(); i++)
-        //        {
-        //            longStepSender.sendMessage(longstep_msgs[i]);
-        //        }
-        for(int i=0; i<back_msgs.size(); i++)
-        {
-            backSender.sendMessage(back_msgs[i]);
-        }
-        for(int i=0; i<reverb_msgs.size(); i++)
-        {
-            reverbSender.sendMessage(reverb_msgs[i]);
-        }
-        
-    }
+//    ci::osc::Sender *send;
+//    bool shouldSend = false;
+//    std::string firstAddress = msgs[0].getAddress();
+//
+//    std::vector<ci::osc::Message> ornament_msgs;
+//    ornament_msgs = collectMessagesforDifferentPorts(CREATE_BOLEO_ORNAMENT, &msgs, ornament_msgs);
+//
+//    std::vector<ci::osc::Message> circling_msgs;
+//    circling_msgs = collectMessagesforDifferentPorts(CIRCLING_VOLUME, &msgs, circling_msgs);
+//    circling_msgs = collectMessagesforDifferentPorts(CIRCLING_GYRO_VECTOR_LENGTH, &msgs, circling_msgs);
+//    circling_msgs = collectMessagesforDifferentPorts(CIRCLING_ACCEL, &msgs, circling_msgs);
+//    circling_msgs = collectMessagesforDifferentPorts(CIRCLING_GYR, &msgs, circling_msgs);
+//    circling_msgs = collectMessagesforDifferentPorts(PLAY_CIRCLING_CLIP, &msgs, circling_msgs);
+//
+//    std::vector<ci::osc::Message> longstep_msgs;
+//    longstep_msgs = collectMessagesforDifferentPorts(LONGSTEP_ACCEL, &msgs, longstep_msgs);
+//    longstep_msgs = collectMessagesforDifferentPorts(LONGSTEP_START, &msgs, longstep_msgs);
+//    longstep_msgs = collectMessagesforDifferentPorts(LONGSTEP_END, &msgs, longstep_msgs);
+//
+//    std::vector<ci::osc::Message>  back_msgs = collectMessagesforDifferentPortsBack(&msgs);
+//
+//    std::vector<ci::osc::Message> reverb_msgs;
+//    reverb_msgs = collectMessagesforDifferentPorts(ROOM_SIZE_GROUP_SIMILARITY, &msgs, reverb_msgs);
+//
+//    //solution FOR NOW -- refactor later
+//
+//    //init
+//    send = NULL;
+//
+//    if( !firstAddress.compare( PLAY_CLIP ) || !firstAddress.compare( PLAY_MELODY_CLIP ) )
+//    {
+//        send = &sender;
+//        shouldSend = true;
+//    }
+//    else
+//    {
+//        if(lastSentOSC > OSC_SEND_AVG_SPEED )
+//        {
+//            if( !firstAddress.compare( STEPTIME_REVERBTAIL ) )
+//            {
+//                send = &reverbSender;
+//            }
+//            else if( !firstAddress.compare( POINTY_VS_SMOOTH ) )
+//            {
+//                send = &pVSsSender;
+//            }
+//            shouldSend = true;
+//            lastSentOSC = 0;
+//        }
+//        else
+//        {
+//            shouldSend = true;
+//            send = &sender;
+//
+//
+//        }
+//    }
+//
+//    if( shouldSend )
+//    {
+//        for(int i=0; i<msgs.size(); i++)
+//        {
+//            if(send != NULL)
+//            {
+//                send->sendMessage(msgs[i]);
+//            }
+//        }
+//        for(int i=0; i<ornament_msgs.size(); i++)
+//        {
+//            ornamentSender.sendMessage(ornament_msgs[i]);
+//        }
+//        for(int i=0; i<circling_msgs.size(); i++)
+//        {
+//            circlingSender.sendMessage(circling_msgs[i]);
+//        }
+//        //        for(int i=0; i<longstep_msgs.size(); i++)
+//        //        {
+//        //            longStepSender.sendMessage(longstep_msgs[i]);
+//        //        }
+//        for(int i=0; i<back_msgs.size(); i++)
+//        {
+//            backSender.sendMessage(back_msgs[i]);
+//        }
+//        for(int i=0; i<reverb_msgs.size(); i++)
+//        {
+//            reverbSender.sendMessage(reverb_msgs[i]);
+//        }
+//
+//    }
 
 }
 

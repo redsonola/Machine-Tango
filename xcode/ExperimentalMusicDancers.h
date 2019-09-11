@@ -32,7 +32,7 @@ namespace InteractiveTango
             
             std::cout << "setting up experimental pareja\n";
 
-            //send back sensors in real time
+            //send feet sensors in real time
             SendSignal *sigs[] = {
                 new SendSignal( (Filter *) getLeader()->getLeftFoot()->at(Dancer::WhichSignals::LPFILTER15Hz), getLeader()->getDancerID(), SEND_LEFTFOOT, 1  ),
                 new SendSignal( (Filter *) getFollower()->getLeftFoot()->at(Dancer::WhichSignals::LPFILTER15Hz), getFollower()->getDancerID(), SEND_LEFTFOOT, 1 ),

@@ -108,6 +108,10 @@ namespace InteractiveTango {
     protected:
         std::string filename;
 
+        float brentAvg, courtneyAvg;
+        float brentCurAvg, courtneyCurAvg;
+
+        float whichSecond;
         
         ReadCSV csvFile;
         float lastTime;
@@ -136,6 +140,11 @@ namespace InteractiveTango {
             //reversion to 0.8x
             mSender.setup( desthost, destport );
 
+            brentAvg=0;
+            courtneyAvg=0;
+            brentCurAvg=0;
+            courtneyCurAvg=0;
+            whichSecond=230;
         }
         
         ~PlayOSC()
@@ -183,16 +192,29 @@ namespace InteractiveTango {
             for(int i=msgs.size()-1; i>=0; i--) //TODO: make more efficient by using while loop
             {
 //                std::cout << msgs[i].timeStamp ;
-                if(msgs[i].timeStamp >= seconds)
-                {
-//                    std::cout << "sending... " << msgs[i].msg.getAddress() << "\n";
+//                if(msgs[i].timeStamp >= seconds)
+//                {
+                if(msgs[i].msg.getAddress().find("ShimmerData")!=-1 ){//&& msgs[i].timeStamp >= 200.0 && msgs[i].timeStamp <= 400.0 ){
+                        int which = 0;
+                        if(msgs[i].msg.getArgAsString(0).find("Brent")==-1) which = 1;
+                    
+                        if(which==0) brentCurAvg++;
+                        else courtneyCurAvg++;
+                    
+//                        std::cout << msgs[i].msg.getAddress() << "," << msgs[i].timeStamp << "," << which <<"\n";
+                        whichSecond = seconds;
 
+                }
+                
 //                    mSender.send(msgs[i].msg);
                     mSender.sendMessage(msgs[i].msg); //change to 0.8.x
                     msgs.erase(msgs.begin() + i);
-                }
+//                }
 //                else std::cout << "not sending...\n";
             }
+//            std::cout << "Courtney Average:" << courtneyCurAvg / whichSecond <<"\n";
+//            std::cout << "Brent Average:" << brentCurAvg / whichSecond <<"\n";
+
         }
         
         //reads through file, loads OSC messages, and sends the OSC according to the input time in seconds.
